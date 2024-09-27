@@ -2,6 +2,7 @@ const express = require('express');
 const userRegister = require('../controllers/UserRegister');
 const VerifyEmail = require('../controllers/VerifyEmail');
 const verifyPassword = require('../controllers/verifyPassword');
+const UserDetails = require('../controllers/UserDetails');
 const router = express.Router(); //create router
 
 //create user api
@@ -10,4 +11,6 @@ router.post('/register',userRegister);
 router.post('/email',VerifyEmail);
 //verify user password
 router.post('/password',verifyPassword);
+//user login details
+router.get('/user-details',UserDetails);
 module.exports = router;

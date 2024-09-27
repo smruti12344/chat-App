@@ -4,6 +4,7 @@
  const app = express() ;
 const  PORT = process.env.PORT || 8080; //run the back-end on custom port or default port
 const connectDB = require('./config/mongoose');
+const cookiesParser = require('cookie-parser');
 const router = require('./routes/index');
 
 
@@ -14,7 +15,12 @@ const router = require('./routes/index');
     origin : process.env.FRONTEND_URL, //only requests from http://frontend-app.com will be permitted.
     credentials: true      //allows the server to accept cookies or authentication headers (such as JWTs) in cross-origin requests.
  }));
- app.use(express.json());
+ app.use(express.json()); //to return in json
+app.use(cookiesParser()); //to use cookie
+
+
+
+
 
 //  controller
 app.get('/',(req,res)=>{

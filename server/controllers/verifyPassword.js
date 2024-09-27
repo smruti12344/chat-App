@@ -21,10 +21,10 @@ module.exports = async function verifyPassword(req,res){
             id : user._id,
             email : user.email
         }
-        const token = await jwt.sign(tokenData,process.env.JWT_SECREAT_KEY);
+        const token = await jwt.sign(tokenData,process.env.JWT_SECREAT_KEY,{expiresIn : '1d'});
         const cookieOption = {
-            http : true,
-            secure : true
+            httpOnly : true, //This option (likely meant to be httpOnly) indicates that the cookie should be HTTP-only
+            secure : true //This option means that the cookie will only be sent to the server if the connection is secure (i.e., over HTTPS).
         }
         return res.cookie('token',token,cookieOption).status(200).json({
             message:"login successfully",

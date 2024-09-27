@@ -5,7 +5,7 @@ module.exports = async function logout(req,res){
         httpOnly: true,   // Same options as when the cookie was set
         secure: true,     // Only applies if using HTTPS
         sameSite: 'strict', // Prevents CSRF attacks
-        
+        path: '/'         // Ensure path matches where the cookie was set
     });
         return res.status(200).json({
             message : "Session out",

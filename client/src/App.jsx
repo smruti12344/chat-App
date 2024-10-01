@@ -9,7 +9,7 @@ function App() {
 
   return (
     <>
-     <h1 className='font-bold text-3xl underline text-red-600'>welcome to my app</h1>
+     <h1 >welcome to my app</h1>
      <Outlet/> 
     </>
   )

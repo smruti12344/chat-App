@@ -8,10 +8,10 @@ function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <>
-     <h1 >welcome to my app</h1>
+    <div className='my-0'>
+    
      <Outlet/> 
-    </>
+    </div>
   )
 }
 

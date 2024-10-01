@@ -3,7 +3,7 @@ import React from 'react'
 export default function RegisterPage() {
   return (
     <div>
-      RegisterPage
+      <h3>Welcome to my App</h3>
     </div>
   )
 }

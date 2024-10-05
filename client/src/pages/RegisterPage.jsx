@@ -4,7 +4,7 @@ import * as yup from 'yup';
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { AiOutlineLoading3Quarters } from "react-icons/ai"; // Loading spinner
 import { MdCancel } from "react-icons/md"; // Cancel icon
-import {Link} from 'react-router-dom'
+import { Link } from 'react-router-dom'
 export default function RegisterPage() {
   const [textVisible, setTextVisible] = useState(false);
   const fileRef = useRef(null);
@@ -35,7 +35,7 @@ export default function RegisterPage() {
         )
     }),
     onSubmit: (values) => {
-      
+
       alert(JSON.stringify(values));
       console.log(values);
     }
@@ -54,7 +54,7 @@ export default function RegisterPage() {
       formik.setFieldValue('profile_pic', file);  // Set the file value in formik
       setPicName(file.name);  // Store the file name
       setLoading(false);  // Turn off loading after "upload"
-    }, 2000); 
+    }, 2000);
   };
 
   const handleRemovePic = () => {
@@ -88,7 +88,7 @@ export default function RegisterPage() {
               {...formik.getFieldProps('email')}
               type="email"
               name='email'
-            
+
               placeholder='Enter your Email'
               className='bg-slate-100 px-2 py-1 focus:outline-primaryColor' />
             <dd className="mt-2 text-pink-600 text-sm">{formik.errors.email}</dd>
@@ -104,10 +104,12 @@ export default function RegisterPage() {
                 name='password'
                 placeholder='Enter your password'
                 className='bg-slate-100 px-2 py-1 w-full focus:outline-primaryColor' />
-              {textVisible ? (
-                <IoEyeOff className='absolute right-3 cursor-pointer' onClick={handlePassword} />
-              ) : (
-                <IoEye className='absolute right-3 cursor-pointer' onClick={handlePassword} />
+              {formik.values.password && (
+                textVisible ? (
+                  <IoEyeOff className='absolute right-3 cursor-pointer' onClick={handlePassword} />
+                ) : (
+                  <IoEye className='absolute right-3 cursor-pointer' onClick={handlePassword} />
+                )
               )}
             </div>
             <dd className="mt-2 text-pink-600 text-sm">{formik.errors.password}</dd>
@@ -147,9 +149,9 @@ export default function RegisterPage() {
           {/* Submit Button */}
           <button type='submit' className='w-full cursor-pointer border p-1 rounded bg-green-600 text-white text-lg hover:bg-green-700 font-bold' disabled={!formik.isValid || !formik.dirty}>Submit</button>
         </form>
-        <p className='mt-2 text-sm text-gray-400'>Already have account? <Link to={'/email'} onClick={(e)=> e.stopPropagation()} className='text-blue-500 hover:underline' >sign in</Link></p>
+        <p className='mt-2 text-sm text-gray-400'>Already have account? <Link to={'/email'} onClick={(e) => e.stopPropagation()} className='text-blue-500 hover:underline' >sign in</Link></p>
       </div>
-      
+
     </div>
   );
 }

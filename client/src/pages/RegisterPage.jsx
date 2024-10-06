@@ -4,19 +4,23 @@ import * as yup from 'yup';
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { AiOutlineLoading3Quarters } from "react-icons/ai"; // Loading spinner
 import { MdCancel } from "react-icons/md"; // Cancel icon
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
+import useUploadFile from '../hooks/uploadFile'; // Custom hook
+
 export default function RegisterPage() {
   const [textVisible, setTextVisible] = useState(false);
-  const fileRef = useRef(null);
-  const [loading, setLoading] = useState(false);  // Track loading state
-  const [picName, setPicName] = useState('');  // Track picture name
+  const fileRef = useRef(null); // Reference to file input
+  const [picName, setPicName] = useState(''); // To track picture name
+
+  // Using the custom hook for file upload
+  const { uploadFile, loading, error, data } = useUploadFile();
 
   const formik = useFormik({
     initialValues: {
       name: "",
       email: "",
       password: "",
-      profile_pic: null
+      profile_pic: null // Will store the uploaded picture URL
     },
     validationSchema: yup.object({
       name: yup.string().required("Please enter user name"),
@@ -35,32 +39,34 @@ export default function RegisterPage() {
         )
     }),
     onSubmit: (values) => {
-
+      // Final form submission
       alert(JSON.stringify(values));
       console.log(values);
     }
   });
 
+  // Handle password visibility toggle
   const handlePassword = () => {
     setTextVisible(!textVisible);
   };
 
-  const handleProfilePic = (e) => {
-    setLoading(true);  // Set loading to true when file is selected
+  // Handle file selection and upload
+  const handleProfilePic = async (e) => {
     const file = e.target.files[0];
-
-    // Simulating async upload and setting file name
-    setTimeout(() => {
-      formik.setFieldValue('profile_pic', file);  // Set the file value in formik
-      setPicName(file.name);  // Store the file name
-      setLoading(false);  // Turn off loading after "upload"
-    }, 2000);
+    if (file) {
+      const responseData = await uploadFile(file); // Upload file using custom hook
+      if (responseData?.secure_url) {
+        formik.setFieldValue('profile_pic', responseData.secure_url); // Set the uploaded URL to formik field
+        setPicName(file.name); // Store the file name for UI
+      }
+    }
   };
 
+  // Handle removing the profile picture
   const handleRemovePic = () => {
-    formik.setFieldValue('profile_pic', null);  // Reset file value in formik
-    setPicName('');  // Reset the picName state
-    fileRef.current.value = null;  // Clear the file input
+    formik.setFieldValue('profile_pic', null); // Reset file value in formik
+    setPicName(''); // Reset the picName state
+    fileRef.current.value = null; // Clear the file input
   };
 
   return (
@@ -88,7 +94,6 @@ export default function RegisterPage() {
               {...formik.getFieldProps('email')}
               type="email"
               name='email'
-
               placeholder='Enter your Email'
               className='bg-slate-100 px-2 py-1 focus:outline-primaryColor' />
             <dd className="mt-2 text-pink-600 text-sm">{formik.errors.email}</dd>
@@ -118,7 +123,7 @@ export default function RegisterPage() {
           {/* Profile Pic Upload */}
           <div className='flex flex-col gap-1 relative'>
             <label className='block text-sm font-medium leading-6 text-gray-900  ' htmlFor="profile_pic">Photo :</label>
-            <div className='h-14  cursor-pointer bg-slate-200 flex items-center justify-center border hover:border-primaryColor rounded'
+            <div className='h-14 cursor-pointer bg-slate-200 flex items-center justify-center border hover:border-primaryColor rounded'
               onClick={() => fileRef.current.click()}>
               <p className='text-sm font-medium leading-6 text-gray-900 '>
                 {loading ? (
@@ -132,7 +137,7 @@ export default function RegisterPage() {
             {/* Cancel Button for Profile Pic */}
             {picName && (
               <MdCancel
-                className='absolute right-3 top-2/4  hover:text-red-600 cursor-pointer'
+                className='absolute right-3 top-2/4 hover:text-red-600 cursor-pointer'
                 onClick={handleRemovePic}
               />
             )}
@@ -141,17 +146,19 @@ export default function RegisterPage() {
               type="file"
               name="profile_pic"
               accept='image/*'
-              className='bg-slate-100 px-2 py-1 hidden'
+              className='hidden'
               ref={fileRef}
               onChange={handleProfilePic} />
+            {error && <p className="text-red-600 text-sm">{error}</p>}
           </div>
 
           {/* Submit Button */}
-          <button type='submit' className='w-full cursor-pointer border p-1 rounded bg-green-600 text-white text-lg hover:bg-green-700 font-bold' disabled={!formik.isValid || !formik.dirty}>Submit</button>
+          <button type='submit' className='w-full cursor-pointer border p-1 rounded bg-green-600 text-white text-lg hover:bg-green-700 font-bold' disabled={!formik.isValid || !formik.dirty || loading}>
+            {loading ? 'Submitting...' : 'Submit'}
+          </button>
         </form>
-        <p className='mt-2 text-sm text-gray-400'>Already have account? <Link to={'/email'} onClick={(e) => e.stopPropagation()} className='text-blue-500 hover:underline' >sign in</Link></p>
+        <p className='mt-2 text-sm text-gray-400'>Already have an account? <Link to={'/email'} className='text-blue-500 hover:underline'>Sign in</Link></p>
       </div>
-
     </div>
   );
 }

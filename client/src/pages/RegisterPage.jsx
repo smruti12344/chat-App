@@ -1,5 +1,5 @@
+import { useEffect, useState, useRef } from 'react';
 import { useFormik } from 'formik';
-import React, { useRef, useState } from 'react';
 import * as yup from 'yup';
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { AiOutlineLoading3Quarters } from "react-icons/ai"; // Loading spinner
@@ -20,7 +20,7 @@ export default function RegisterPage() {
       name: "",
       email: "",
       password: "",
-      profile_pic: null // Will store the uploaded picture URL
+      profile_pic: null, // Will store the uploaded picture URL
     },
     validationSchema: yup.object({
       name: yup.string().required("Please enter user name"),
@@ -42,8 +42,16 @@ export default function RegisterPage() {
       // Final form submission
       alert(JSON.stringify(values));
       console.log(values);
-    }
+    },
   });
+
+  // UseEffect to watch for changes in `data` state from the uploadFile hook
+  useEffect(() => {
+    if (data) {
+      formik.setFieldValue('profile_pic', data.secure_url); // Set the uploaded URL to formik field
+      console.log("Updated profile_pic URL: ", data.secure_url);
+    }
+  }, [data]); // This runs whenever `data` changes
 
   // Handle password visibility toggle
   const handlePassword = () => {
@@ -54,11 +62,10 @@ export default function RegisterPage() {
   const handleProfilePic = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const responseData = await uploadFile(file); // Upload file using custom hook
-      if (responseData?.secure_url) {
-        formik.setFieldValue('profile_pic', responseData.secure_url); // Set the uploaded URL to formik field
-        setPicName(file.name); // Store the file name for UI
-      }
+      await uploadFile(file); // Upload file using custom hook
+      setPicName(file.name); // Store the file name for UI
+
+      // You no longer need to log `data` here because it's managed by the useEffect above
     }
   };
 
@@ -71,7 +78,7 @@ export default function RegisterPage() {
 
   return (
     <div className='mt-5'>
-      <div className='bg-white max-w-sm w-full mx-auto overflow-hidden rounded p-4'>
+      <div className='bg-white max-w-md w-full   mx-auto overflow-hidden rounded p-4'>
         <h3>Welcome to my app</h3>
         <form className='grid gap-3 mt-4' onSubmit={formik.handleSubmit}>
           {/* Name Input */}
@@ -157,7 +164,7 @@ export default function RegisterPage() {
             {loading ? 'Submitting...' : 'Submit'}
           </button>
         </form>
-        <p className='mt-2 text-sm text-gray-400'>Already have an account? <Link to={'/email'} className='text-blue-500 hover:underline'>Sign in</Link></p>
+        <p className='mt-2 text-sm text-gray-400'>Already have an account? <Link to={'/login'} className='text-blue-500 hover:underline'>Sign in</Link></p>
       </div>
     </div>
   );

@@ -1,11 +1,25 @@
-import { useState } from 'react';
+how to set-up CLOUDINARY for project to upload photo:
+======================================================
+1.create an account in cloudinary then log-in
+2.then click on the profile icon which is display in left-side bottom of the page and click 
+3.myprofile =>click on upload text =>move down and clickadd upload_preset
 
-const useUploadFile = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [data, setData] = useState(null);
-  
-  const uploadFile = async (file) => {
+    i. gives Upload preset name 
+    ii.signin mode : unsigned
+    iii.gives asset folder name
+    iv check overwrte botton turn on find in default
+    v. click save botton
+
+    5. come to code page and set the following
+
+
+    .env file:
+    ===========
+    VITE_CLOUDINARY_CLOUD_NAME=decg6vvjo
+
+    uploadFile function use to upload photo to cloudinary:
+    =======================================================
+    const uploadFile = async (file) => {
     setLoading(true);
     setError(null);
     // setData(null);
@@ -49,8 +63,4 @@ const useUploadFile = () => {
       setLoading(false);
     }
   };
-        // console.log("data"+JSON.stringify(data));
-  return { uploadFile, loading, error, data };
-};
-
-export default useUploadFile;
+    

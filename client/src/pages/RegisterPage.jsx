@@ -4,7 +4,7 @@ import * as yup from 'yup';
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { AiOutlineLoading3Quarters } from "react-icons/ai"; // Loading spinner
 import { MdCancel } from "react-icons/md"; // Cancel icon
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import useUploadFile from '../hooks/uploadFile'; // Custom hook
 import axios from'axios';
 import toast from 'react-hot-toast';
@@ -12,7 +12,7 @@ export default function RegisterPage() {
   const [textVisible, setTextVisible] = useState(false);
   const fileRef = useRef(null); // Reference to file input
   const [picName, setPicName] = useState(''); // To track picture name
-
+  const navigate = useNavigate();
   // Using the custom hook for file upload
   const { uploadFile, loading, error, data } = useUploadFile();
 
@@ -39,15 +39,29 @@ export default function RegisterPage() {
           "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
         )
     }),
-    onSubmit: async (values) => {
+    onSubmit: async (values,{resetForm}) => {
       // Final form submission
       // alert(JSON.stringify(values));
      
       const backend_url = `${import.meta.env.VITE_BACKEND_URL}/api/register`;
       try {
         const registerResponse = await axios.post(backend_url,values);
-        console.log("response",registerResponse);
+        // console.log("response",registerResponse);
         toast.success(registerResponse.data.message);
+        console.log(JSON.stringify(values));
+         // Reset form after successful submission
+      resetForm({
+        values: {
+          name: "",    // Set the initial values to empty
+          email: "",   // Or you can define new default values here
+          password: "",
+          profile_pic: null,
+        
+      }}); // Reset form to initialValues
+      setPicName(''); //reset the pic name after submit
+      fileRef.current.value = null ; //reset after submit
+      navigate('/email');
+
       } catch (error) {
         console.log("error",error);
        // Access error message correctly

@@ -1,3 +1,315 @@
+Back-end Side:
+===============
+1.create folder server then goto inside server folder generate package.json file for project [npm init -y]
+2.install following libraries 
+
+"dependencies": {
+  "bcryptjs": "^2.4.3",
+  "cookie-parser": "^1.4.6",
+  "cors": "^2.8.5",
+  "dotenv": "^16.4.5",
+  "express": "^4.21.0",
+  "jsonwebtoken": "^9.0.2",
+  "mongoose": "^8.6.3"
+  "nodemon": [npm instll -g nodemon]
+}
+
+3.create server page indexedDB.js and set-up [libraries,skipMiddlewareFunction,__reactRouterVersion,controllers and startserver]
+4.set-up mongoDb for Project 
+ 
+ mongoDb Connection:
+ =====================
+ const mongoose = require('mongoose'); //access mongoose library
+const dbUrl = process.env.MONGODB_URL;
+
+//DB_Connection function
+async function connectDB(){
+    try {
+       await mongoose.connect(dbUrl);  //connect request to mongodb
+       const connection = mongoose.connection ;
+       connection.on('connected',()=>{
+        console.log("connected to Database");
+       })
+       connection.on('error',(error)=>{
+        console.log("Something went to wrong inside MongoDb"+error);
+       })
+    } catch (error) {
+        console.log("Somthing is wrong "+error);
+    }
+}
+module.exports = connectDB ;
+
+5.prepare schema-for project:
+===============================
+i.userSchema:
+=============
+const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema({
+    name:{
+        type:String,
+        required:[true,"provide name"]
+    },
+    email : {
+        type:String,
+        required:[true,"provide email"],
+        unique : true
+
+    },
+    password : {
+         type : String,
+         required :[true,"provide password"],
+        
+    },
+    profile_pic :{
+        type : String,
+        default : ""
+    }
+},{
+    timestamps : true
+});
+
+const userModel = mongoose.model("User",userSchema); //create collection and refer
+module.exports = userModel;
+
+ii . conversessionSchema:
+===========================
+const mongoose = require('mongoose');
+
+const conversationSchema = new mongoose.Schema({
+    sender:{
+        type:mongoose.Schema.ObjectId, // You can explicitly define it, but MongoDB adds it automatically
+        required:true,
+        ref : 'User'  //// Reference to the User model
+    },
+    recevier : {
+        type:mongoose.Schema.ObjectId, //// You can explicitly define it, but MongoDB adds it automatically
+        required:true,
+        ref : 'User'
+    },
+    messsage : {
+        type : mongoose.Schema.ObjectId,
+        ref : 'Message'
+    }
+},{
+    timestamps : true
+});
+
+const communicationModel = mongoose.model('Communication',conversationSchema);
+module.exports = communicationModel; 
+
+
+iii . MessageScema:
+===================
+const  mongoose = require('mongoose');
+
+const messageSchema = new mongoose.Schema({
+    text : {
+        type : String,
+        default:""
+    },
+    image :{
+        type :String,
+        default:""
+    },
+    videoUrl :{
+        type : String,
+        default:""
+    },
+    seen :{
+        type: Boolean,
+        default:false
+    }
+
+},
+{
+    timestamps:true
+})
+
+const MessageModel = mongoose.model('Message',messageSchema);
+module.exports = MessageModel;
+
+
+6. set-up router and controllers:
+==================================
+controllers:
+==============
+i . UserRegister:
+===================
+=>get user details like {name,ElementInternals,password,profile_pic} from req.body
+=>then verifies email is already register or not in database  [ const verifyEmail = await userModel.findOne({email}); if not find return null else return data]
+=>if not register then save the user data in database and send respose to server regiseter successfully
+
+a. 1st generate password to hashPassword
+=========================================
+=>access const bcrypt = require('bcryptjs');
+const salt = await bcrypt.genSalt(10);
+const hashpassword = await bcrypt.hash(password, salt);
+
+
+b. then create payload for user-data:
+======================================
+const payload = { // creating object with user data
+  name,
+  email,
+  profile_pic,
+  password : hashpassword // This is a hashed password
+}
+
+c.save data to database:
+==========================
+const user = new userModel(payload); // This line creates a new instance of the userModel based on the payload object.
+const userSave = await user.save(); // method is provided by Mongoose to persist the document (user) into the MongoDB database
+return res.status(201).json({
+    message:"User register successfully",
+    data : userSave,
+    success : true
+
+})
+
+
+ii verifyEmailController:
+==========================
+=>access email from server  [ const {email} = req.body;]
+=>verify email in database [const verifyEmail = await userModel.findOne({email}).select("-password");] it return matching email user info
+=>if found then send user data to server else send response user not found
+
+
+iii verifyPassword:
+=====================
+=>access const bcryptjs = require('bcryptjs')
+=>access password from server  [ const {password} = req.body;]
+=>verify user password [const verifyPassword = bcryptjs.compare(password, user.password);] // compare method used to user enter password with user password
+=>if verify then create tokenData
+  ================================
+  const tokenData = { //user data
+    id : user._id,
+    email : user.email
+}
+
+=>create token:
+===============
+=>access const jwt =require('jsonwebtoken')
+const token = await jwt.sign(tokenData,process.env.JWT_SECREAT_KEY,{expiresIn : '1d'});
+=>create cookie-option and cookie to store token for sign-in
+
+const cookieOption = {
+  httpOnly : true, //This option (likely meant to be httpOnly) indicates that the cookie should be HTTP-only
+  secure : true //This option means that the cookie will only be sent to the server if the connection is secure (i.e., over HTTPS).
+}
+return res.cookie('token',token,cookieOption).status(200).json({
+  message:"login successfully",
+  token:token,
+  success:true
+})
+
+iv updateUserDetailsController:
+=================================
+=>access token from cookie [  const token = req.cookies.token || "";] 
+=>then convert token to user-Data  [const user = await getUserDetailsFromToken(token);]
+
+getUserDetailsFromToken:
+=========================
+const jwt = require('jsonwebtoken');
+const userModel = require('../models/UserModel');
+module.exports=async function getUserDetailsFromToken(token){
+    if (!token) {
+        return {
+            message : "session out",
+            logout : true,
+            errror:true
+        }
+    }
+     //decode the code find user data
+     const decode =  jwt.verify(token,process.env.JWT_SECREAT_KEY); //Synchronously verify given token using a secret or a public key to get a decoded token
+     const user = await userModel.findById(decode.id).select('-password');//select used to exclude password filed
+     return user;
+}
+
+=>then access update data from client [const {name,profile_pic} = req.body;]
+=>then update user collection in database
+
+const updateUser = await userModel.updateOne({_id : user._id},{
+  name,
+  profile_pic
+})
+
+
+=.Then check update in database or not 
+
+const userInformation = await userModel.findById(user._id);
+return res.json({
+    message : "user updated successfully",
+    data : userInformation,
+    success : true
+})
+
+
+v.logOutController:
+==================
+module.exports = async function logout(req,res){
+  try {
+     // Clear the authentication cookie (assuming the cookie name is 'token')
+     res.clearCookie('token', {
+      httpOnly: true,   // Same options as when the cookie was set
+      secure: true,     // Only applies if using HTTPS
+      sameSite: 'strict', // Prevents CSRF attacks
+      path: '/'         // Ensure path matches where the cookie was set
+  });
+      return res.status(200).json({
+          message : "Session out",
+          success : true
+      })
+  } catch (error) {
+      return res.status(500).json({
+          message : error.message || error,
+          error : true
+      })
+  }
+}
+
+
+7. Routes:
+============
+const express = require('express');
+const userRegister = require('../controllers/UserRegister');
+const VerifyEmail = require('../controllers/VerifyEmail');
+const verifyPassword = require('../controllers/verifyPassword');
+const UserDetails = require('../controllers/UserDetails');
+const Logout = require('../controllers/Logout');
+const UpdateUserDetails = require('../controllers/UpdateUserDetails');
+const router = express.Router(); //create router
+
+//create user api
+router.post('/register',userRegister);
+//verify user email
+router.post('/email',VerifyEmail);
+//verify user password
+router.post('/password',verifyPassword);
+//user login details
+router.get('/user-details',UserDetails);
+//log-out user
+router.get('/logout',Logout);
+//update user info
+router.post('/update',UpdateUserDetails);
+module.exports = router;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Front-end side:
+================
 how to set-up CLOUDINARY for project to upload photo:
 ======================================================
 1.create an account in cloudinary then log-in

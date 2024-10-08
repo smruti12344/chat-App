@@ -6,7 +6,8 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai"; // Loading spinner
 import { MdCancel } from "react-icons/md"; // Cancel icon
 import { Link } from 'react-router-dom';
 import useUploadFile from '../hooks/uploadFile'; // Custom hook
-
+import axios from'axios';
+import toast from 'react-hot-toast';
 export default function RegisterPage() {
   const [textVisible, setTextVisible] = useState(false);
   const fileRef = useRef(null); // Reference to file input
@@ -38,10 +39,22 @@ export default function RegisterPage() {
           "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
         )
     }),
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       // Final form submission
-      alert(JSON.stringify(values));
-      console.log(values);
+      // alert(JSON.stringify(values));
+     
+      const backend_url = `${import.meta.env.VITE_BACKEND_URL}/api/register`;
+      try {
+        const registerResponse = await axios.post(backend_url,values);
+        console.log("response",registerResponse);
+        toast.success(registerResponse.data.message);
+      } catch (error) {
+        console.log("error",error);
+       // Access error message correctly
+    toast.error(error?.response?.data?.message || "An error occurred");
+        
+      }
+
     },
   });
 

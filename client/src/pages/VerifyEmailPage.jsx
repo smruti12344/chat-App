@@ -71,7 +71,9 @@ export default function VerifyEmailPage() {
               type="email"
               name='email'
               placeholder='Enter your Email'
-              className='bg-slate-100 px-2 py-1 focus:outline-primaryColor' />
+              className={`bg-slate-100 px-2 py-1  ${
+                formik.touched.email && formik.errors.email ? 'focus:outline-red-600' : 'focus:outline-primaryColor'
+              }`} />
             <dd className="mt-2 text-pink-600 text-sm">{formik.errors.email}</dd>
           </div>
 

@@ -310,6 +310,7 @@ module.exports = router;
 
 Front-end side:
 ================
+1. 
 how to set-up CLOUDINARY for project to upload photo:
 ======================================================
 1.create an account in cloudinary then log-in

@@ -1,16 +1,18 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { IoEye, IoEyeOff } from "react-icons/io5";
-import { MdCancel } from "react-icons/md"; // Cancel icon
-import { Link, useNavigate } from 'react-router-dom';
-import useUploadFile from '../hooks/uploadFile'; // Custom hook
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from'axios';
 import toast from 'react-hot-toast';
-import { FaRegCircleUser } from 'react-icons/fa6';
+import AvtarComponent from '../components/AvtarComponent';
+
 export default function VerifyPasswordPage() {
   const [textVisible, setTextVisible] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation(); //to get data from url
+  console.log(location.state);
+  console.log("location",location);
   const formik = useFormik({
     initialValues: {
      
@@ -30,11 +32,11 @@ export default function VerifyPasswordPage() {
       // Final form submission
       // alert(JSON.stringify(values));
      
-      const backend_url = `${import.meta.env.VITE_BACKEND_URL}/api/register`;
+      const backend_url = `${import.meta.env.VITE_BACKEND_URL}/api/password`;
       try {
         const passwordResponse = await axios.post(backend_url,values);
         // console.log("response",registerResponse);
-        toast.success(registerResponse.data.message);
+        toast.success(passwordResponse.data.message);
         console.log(JSON.stringify(values));
          // Reset form after successful submission
       resetForm({
@@ -56,19 +58,27 @@ export default function VerifyPasswordPage() {
     },
   });
 
-
-
   // Handle password visibility toggle
   const handlePassword = () => {
     setTextVisible(!textVisible);
   };
+  // restrict user to visit password-page without verifying email
+  useEffect(()=>{
+    if(!location.state){
+     navigate('/email');
+    }
+  },[]);
   return (
     <div className='mt-5'>
       <div className='bg-white max-w-md w-full   mx-auto overflow-hidden rounded p-4'>
-        <div className='flex justify-center items-center mb-3'>
-          <FaRegCircleUser size={60} />
+        <div className=' mb-3 flex flex-col justify-center items-center'>
+          <AvtarComponent width={'70'}
+                          height={'70'}
+                          name={location?.state?.data?.name}
+                          imgUrl={location?.state?.data?.profile_pic}/>
+          <h2 className='font-semibold'>{location?.state?.data?.name}</h2>
         </div>
-        <h3>Welcome to my app</h3>
+        
         <form className='grid gap-3 mt-4' onSubmit={formik.handleSubmit}>
 
 
@@ -104,7 +114,7 @@ export default function VerifyPasswordPage() {
             verify
           </button>
         </form>
-        <p className='text-center mt-2 text-sm text-gray-400'>New User? <Link to={'/register'} className='text-blue-500  hover:underline'>Sign up</Link></p>
+        <p className='text-center mt-2 text-sm text-gray-400'><Link to={'/forgot-password'} className=' text-black  '>Forgot Password</Link></p>
       </div>
     </div>
   );

@@ -40,7 +40,9 @@ export default function VerifyEmailPage() {
 
           }
         }); // Reset form to initialValues
-        navigate('/password');
+        navigate('/password',{
+          state: emailResponse?.data   //send user data to password route
+        });
 
       } catch (error) {
         console.log("error", error);

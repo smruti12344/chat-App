@@ -11,11 +11,9 @@ export default function VerifyPasswordPage() {
   const [textVisible, setTextVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation(); //to get data from url
-  console.log(location.state);
-  console.log("location",location);
   const formik = useFormik({
     initialValues: {
-     
+     userId:'',
       password: "",
       
     },
@@ -34,7 +32,20 @@ export default function VerifyPasswordPage() {
      
       const backend_url = `${import.meta.env.VITE_BACKEND_URL}/api/password`;
       try {
-        const passwordResponse = await axios.post(backend_url,values);
+        //added userId form routes
+       const updateValues={
+        ...values,
+        userId : location.state?.data?._id
+
+       }
+        const passwordResponse = await axios({
+          method:'post',
+          url:backend_url,
+          data: updateValues,
+          withCredentials:true
+
+          
+        });
         // console.log("response",registerResponse);
         toast.success(passwordResponse.data.message);
         console.log(JSON.stringify(values));
@@ -46,7 +57,7 @@ export default function VerifyPasswordPage() {
         
       }}); // Reset form to initialValues
      
-      navigate('/email');
+      navigate('/');
 
       } catch (error) {
         console.log("error",error);
@@ -111,7 +122,7 @@ export default function VerifyPasswordPage() {
 
           {/* Submit Button */}
           <button type='submit' className='w-full cursor-pointer border p-1 rounded bg-green-600 text-white text-lg hover:bg-green-700 font-bold' disabled={!formik.isValid || !formik.dirty}>
-            verify
+            Login
           </button>
         </form>
         <p className='text-center mt-2 text-sm text-gray-400'><Link to={'/forgot-password'} className=' text-black  '>Forgot Password</Link></p>

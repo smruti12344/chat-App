@@ -6,11 +6,15 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from'axios';
 import toast from 'react-hot-toast';
 import AvtarComponent from '../components/AvtarComponent';
+import { useDispatch } from 'react-redux';
+import { setToken } from '../redux/userSlice';
 
 export default function VerifyPasswordPage() {
   const [textVisible, setTextVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation(); //to get data from url
+  const   dispatch = useDispatch();
+ 
   const formik = useFormik({
     initialValues: {
      userId:'',
@@ -46,10 +50,17 @@ export default function VerifyPasswordPage() {
 
           
         });
-        // console.log("response",registerResponse);
+        console.log("userDetails",passwordResponse);
+        console.log("response",passwordResponse.data.token);
         toast.success(passwordResponse.data.message);
-        console.log(JSON.stringify(values));
+        
          // Reset form after successful submission
+         
+         
+          
+         dispatch(setToken(passwordResponse.data.token));
+         localStorage.setItem('Token', passwordResponse.data.token);
+        
       resetForm({
         values: {
           password: "",
